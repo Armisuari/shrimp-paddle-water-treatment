@@ -1,64 +1,66 @@
 #include "DS18b20.h"
 
-DS18B20::DS18B20(uint8_t pin) : _pin(pin)
-{
-}
+DS18B20::DS18B20(uint8_t pin) : ds(pin), isDetected(false), _pin(pin) {}
 
-DS18B20::~DS18B20()
-{
-}
+DS18B20::~DS18B20() {}
 
 bool DS18B20::begin()
 {
+    // Initialize DS18B20 sensor and check for presence
+    ds.reset_search();
     if (!ds.search(addr))
     {
-        ds.reset_search();
         isDetected = false;
         return false;
     }
 
     if (OneWire::crc8(addr, 7) != addr[7])
     {
-        ESP_LOGE(TEMP_TAG, "CRC is ot valid...");
+        isDetected = false;
         return false;
     }
 
     if (addr[0] != 0x10 && addr[0] != 0x28)
     {
-        ESP_LOGE(TEMP_TAG, "Device is not recognized...");
+        isDetected = false;
         return false;
     }
 
-    ESP_LOGI(TEMP_TAG, "Device detected");
+    isDetected = true;
     return true;
-}
-
-float DS18B20::getValue()
-{
-    if (!isDetected)
-    {
-        return 0.0;
-    }
-
-    ds.reset();
-    ds.select(addr);
-    ds.write(0x44, 1);
-
-    for (int i = 0; i < 9; i++)
-    {
-        _data[i] = ds.read();
-    }
-
-    ds.reset_search();
-
-    byte MSB = _data[1];
-    byte LSB = _data[0];
-    int16_t tempRead = ((MSB << 8) | LSB);
-
-    return tempRead / 16.0f;
 }
 
 void DS18B20::measure(Temperature_t &value)
 {
-    value.temp = 39.00;//getValue();
+    if (!isDetected)
+    {
+        value.temp = -127.0; // Return an invalid temperature value
+        return;
+    }
+
+    float temperature = getValue();
+    value.temp = temperature;
+}
+
+float DS18B20::getValue()
+{
+    ds.reset();
+    ds.select(addr);
+    ds.write(0x44); // Start temperature conversion
+    delay(750);     // Wait for conversion to complete
+
+    ds.reset();
+    ds.select(addr);
+    ds.write(0xBE); // Read scratchpad
+
+    byte data[9];
+    for (uint8_t i = 0; i < 9; i++)
+    {
+        data[i] = ds.read();
+    }
+
+    int16_t rawTemperature = ((int16_t)data[1] << 8) | data[0];
+    float temperature = (float)rawTemperature / 16.0;
+
+    return temperature;
 }

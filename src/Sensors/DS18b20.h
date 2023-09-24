@@ -4,10 +4,10 @@
 
 #define TEMP_TAG "Temperature"
 
-typedef struct
+struct Temperature_t
 {
     float temp;
-} Temperature_t;
+};
 
 class DS18B20
 {
@@ -24,6 +24,5 @@ private:
 
     bool isDetected;
     uint8_t _pin;
-    byte _data[12];
     byte addr[8];
 };
