@@ -16,4 +16,5 @@
 // #include "client.h"
 
 // #include "Tes/wifi-test.hpp"
-#include "Tes/DO.hpp"
+// #include "Tes/DO-sensor-test.hpp"
+#include "Tes/EC-sensor-test.hpp"
