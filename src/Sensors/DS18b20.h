@@ -6,7 +6,7 @@
 
 struct Temperature_t
 {
-    float temp;
+    float temp = 25;
 };
 
 class DS18B20
