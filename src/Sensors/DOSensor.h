@@ -23,9 +23,7 @@
 
 typedef struct
 {
-
   float value;
-
 } DO_Value;
 
 class DOSensor
@@ -36,7 +34,7 @@ private:
       11260, 11010, 10770, 10530, 10300, 10080, 9860, 9660, 9460, 9270,
       9080, 8900, 8730, 8570, 8410, 8250, 8110, 7960, 7820, 7690,
       7560, 7430, 7300, 7180, 7070, 6950, 6840, 6730, 6630, 6530, 6410};
-  
+
   uint8_t _pin;
   uint8_t _temp;
   uint16_t adcRaw;
@@ -45,7 +43,6 @@ private:
   bool _state;
 
   TaskHandle_t taskHandle;
-
   ADS1115 *ADS;
 
   int16_t calcValue();

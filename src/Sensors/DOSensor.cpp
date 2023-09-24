@@ -1,8 +1,7 @@
 #include "DOSensor.h"
 
-DOSensor::DOSensor(uint8_t pin) : _pin(pin), adcRaw(0), adcVoltage(0)
+DOSensor::DOSensor(uint8_t pin) : _pin(pin), adcRaw(0), adcVoltage(0), ADS(new ADS1115(0x48))
 {
-    ADS = new ADS1115(0x48);
 }
 
 DOSensor::~DOSensor()
@@ -10,58 +9,57 @@ DOSensor::~DOSensor()
     delete ADS;
 }
 
+
 bool DOSensor::init()
 {
-    if (!ADS->begin())
-    {
-        ESP_LOGE(DO_SENSOR_TAG, "DO sensor failed to run. ADS1115 not detected");
-        _state = false;
-        return false;
-    }
-    else
+    if (ADS->begin())
     {
         _state = true;
         _temp = DEFAULT_TEMP;
         ESP_LOGI(DO_SENSOR_TAG, "DO sensor ready !");
+        return true;
     }
 
-    return true;
+    ESP_LOGE(DO_SENSOR_TAG, "DO sensor failed to run. ADS1115 not detected");
+    _state = false;
+    return false;
 }
 
 bool DOSensor::calibrate(uint8_t gain)
 {
-    ESP_LOGI(DO_SENSOR_TAG, "Start to calibrating DO sensor...");
+    ESP_LOGI(DO_SENSOR_TAG, "Start calibrating DO sensor...");
     _gain = gain;
-    float _value = readValue();
-    ESP_LOGI(DO_SENSOR_TAG, "Put the probe to 0 % buffer solution !");
-
     uint8_t listGain[6] = {0, 1, 2, 4, 8, 16};
     static int count = 0;
 
-    while (_value >= 0.5)
+    while (true)
     {
-        for (uint8_t gain_ : listGain)
+        float _value = readValue();
+        ESP_LOGI(DO_SENSOR_TAG, "DO value %4.2f | Gain = %d | Please wait...", _value, _gain);
+        delay(1000);
+        count++;
+
+        if (_value < 0.5)
         {
-            _gain = listGain[gain_];
-            ESP_LOGI(DO_SENSOR_TAG, " DO value %4.2f | Gain = %d | Please wait...", _value, _gain);
-            delay(1000);
-            count++;
-
-            if (count > 6)
-            {
-                ESP_LOGW(DO_SENSOR_TAG, "DO sensor can not be calibrated due to probe issue...");
-                return false;
-            }
+            ESP_LOGI(DO_SENSOR_TAG, "DO sensor calibrated");
+            return true;
         }
-    }
 
-    ESP_LOGI(DO_SENSOR_TAG, "DO sensor calibrated");
-    return true;
+        if (count > 6)
+        {
+            ESP_LOGW(DO_SENSOR_TAG, "DO sensor cannot be calibrated due to probe issue...");
+            return false;
+        }
+
+        // Rotate through the gain settings
+        _gain = listGain[count % 6];
+        ESP_LOGI(DO_SENSOR_TAG, "Put the probe in 0 % buffer solution !");
+    }
 }
 
 bool DOSensor::Measure(DO_Value &value)
 {
-    value.value = 2.3;//readValue();
+    value.value = 2.3; // readValue();
 
     if (value.value < 0)
     {
@@ -75,7 +73,7 @@ bool DOSensor::Measure(DO_Value &value)
 bool DOSensor::Measure(DO_Value &value, Temperature_t &tempVal)
 {
     _temp = tempVal.temp;
-    value.value = 2.45;//readValue();
+    value.value = readValue();
 
     if (value.value < 0)
     {
@@ -99,12 +97,14 @@ int16_t DOSensor::calcValue()
 
 float DOSensor::readValue()
 {
-    if (_state)
+    if (!_state)
     {
-        ADS->setGain(_gain);
-        adcRaw = ADS->readADC(_pin);
-        adcVoltage = uint32_t(VREF) * adcRaw / ADC_RES;
+        return 0.0; // Return a default value or handle the error state.
     }
+
+    ADS->setGain(_gain);
+    adcRaw = ADS->readADC(_pin);
+    adcVoltage = static_cast<float>(VREF) * adcRaw / ADC_RES;
 
     return static_cast<float>(calcValue());
 }
