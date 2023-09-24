@@ -9,13 +9,11 @@ DOSensor::~DOSensor()
     delete ADS;
 }
 
-
 bool DOSensor::init()
 {
     if (ADS->begin())
     {
         _state = true;
-        _temp = DEFAULT_TEMP;
         ESP_LOGI(DO_SENSOR_TAG, "DO sensor ready !");
         return true;
     }

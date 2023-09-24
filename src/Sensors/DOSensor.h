@@ -8,8 +8,6 @@
 #define ADC_RES 26470 // ADC Resolution
 #define TWO_POINT_CALIBRATION 0
 
-#define DEFAULT_TEMP (20) // Current water temperature ℃, Or temperature sensor function
-
 // Single point calibration needs to be filled CAL1_V and CAL1_T
 #define CAL1_V (1250) // mv
 #define CAL1_T (33)   // ℃
