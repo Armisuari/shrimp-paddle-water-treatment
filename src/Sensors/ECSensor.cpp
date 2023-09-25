@@ -14,6 +14,8 @@ ECSensor::~ECSensor()
 
 bool ECSensor::init(Temperature_t &Tcompensation)
 {
+    EEPROM.begin(32);
+    
     if (!ads.begin())
     {
         _isMeasureing = false;
