@@ -1,5 +1,5 @@
 // #include <Arduino.h>
-// #include "main_app.h"
+#include "main_app.h"
 // #include "Tes/Turbidity.h"
 // #include "Tes/Thingsboard.h"
 // #include "Tes/DF_Robot_EC.h"
@@ -19,4 +19,4 @@
 // #include "Tes/DO-sensor-test.hpp"
 // #include "Tes/EC-sensor-test.hpp"
 // #include "Tes/PH-sensor-test.hpp"
-#include "Tes/Turb-sensor-test.hpp"
+// #include "Tes/Turb-sensor-test.hpp"

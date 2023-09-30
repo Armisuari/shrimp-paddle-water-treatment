@@ -1,130 +1,96 @@
-#pragma once
 #include <Arduino.h>
-#include "DO.h"
-#include "Turbidity.h"
-#include "EC.h"
-#include "pH.h"
-#include "puzzy.h"
-
 #include <WifiHandler.h>
-#include <WiFiClientSecure.h>
-#include <WebServer.h>
-#include <ThingsBoard.h>
 
-#include "ServerHandler.h"
+#include "config.h"
+#include "mdns.h"
 
-WifiHandler wifi("eFisheryPlus", "123123123");
-ServerHandler myServer("myServer");
-FuzzyHandler myFuzzy;
+// include sensors library
+#include "Sensors/DS18b20.h"
+#include "Sensors/DOSensor.h"
+#include "Sensors/ECSensor.h"
+#include "Sensors/pHSensor.h"
+#include "Sensors/TurbSensor.h"
 
-const char *thingsboardToken = "Ojz6j6cfFJgIJmz1ZIyh";
-const char *thingsboardServer = "thingsboard.cloud";
-const uint16_t thingsboardPort = 1883;
+// mdns setup
+const char *version = CONFIG_MAIN_FW_VERSION_STRING;
+char clientID[sizeof(CONFIG_MAIN_CLIENT_ID_PREFIX) + 6];
 
-WebServer server(80);
-WiFiClient client;
-ThingsBoard tb(client);
+void generateClientID(char *idBuff);
+void setupMDNSResponder(char *hostname);
 
-float DOdata;
-// float turbiditydata;
-// float ecdata;
-// float phdata;
+// connectivity
+WifiHandler wifi(CONFIG_MAIN_WIFI_DEFAULT_SSID, CONFIG_MAIN_WIFI_DEFAULT_PASS);
 
-void DO_task(void *pvParameters);
-// void turbidity_task(void *pvParameters);
-// void EC_task(void *pvParameters);
-// void pH_task(void *pvParameters);
+// sensor object
+DS18B20 tempSensor(CONFIG_SENSOR_TEMPERATURE_PIN);
+
+// parameter value object
+Temperature_t tempValue;
+
+#define AMOUNT_OF_AVERAGE_DATA 3
+
+// NTP Server
+const char *ntpServer = "pool.ntp.org";
+
+void printSensorValue(Temperature_t temp);
 
 void setup()
 {
-  sensor.setup();
-  // turbidity.setup();
-  // ecMeasurement.setup();
-  // phMeasurement.setup();
+    Serial.begin(115200);
+    generateClientID(clientID); // Generate clientID based on MAC Addr
 
-  //  Connect to Wi-Fi network
-  wifi.init();
-  String paramToSend;
-  myServer.postToClient(paramToSend); //perlu validasi
-  myServer.begin();
+    // Wifi setup
+    wifi.init();
 
-  // Connect to ThingsBoard server
-  Serial.print("Connecting to ThingsBoard...");
-  if (!tb.connect(thingsboardServer, thingsboardToken, thingsboardPort))
-  {
-    Serial.println("Failed to connect to ThingsBoard!");
-  }
-  else
-  {
-    Serial.println("Connected to ThingsBoard!");
-  }
+    // MDNS
+    setupMDNSResponder(clientID);
 
-  // xTaskCreatePinnedToCore(DO_task, "DO task", 1024 * 2 , NULL, 5, NULL, 1);
-  // xTaskCreatePinnedToCore(turbidity_task, "Turbidity task", 1024 * 2, NULL, 5, NULL, 1);
-  // xTaskCreatePinnedToCore(EC_task, "EC task", 1024 * 2 , NULL, 5, NULL, 1);
-  // xTaskCreatePinnedToCore(pH_task, "pH task", 1024 * 2 , NULL, 5, NULL, 1);
-  // xTaskCreatePinnedToCore(server_task, "Server task", 1024 * 4 , NULL, 15, NULL, 1);
+    // NTP time sync
+    configTime(0, 0, ntpServer);
+    delay(2000);
+
+    tempSensor.begin();
 }
 
 void loop()
 {
-  vTaskDelete(NULL);
+    // parameter value object
+    Temperature_t tempValue;
+
+    tempSensor.measure(tempValue);
+
+    printSensorValue(tempValue);
+    
+    vTaskDelay(5000);
 }
 
-// void DO_task(void *pvParameters)
-// {
-//   (void)pvParameters;
-//   while (1)
-//   {
-//     DOdata = sensor.readDO();
-//     Serial.println("DO:\t" + String(DOdata / 1000) + "\t");
-//     vTaskDelay(500);
-//   }
-// }
+void generateClientID(char *idBuff)
+{
+    const char *clientIdPrefix = CONFIG_MAIN_CLIENT_ID_PREFIX;
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
 
-// void turbidity_task(void *pvParameters)
-// {
-//   (void)pvParameters;
-//   while (1)
-//   {
-//     turbiditydata = turbidity.read_sensor();
-//     Serial.printf("Nilai Tegangan Turbidity = %f\n", turbidity.read_sensor());
-//     vTaskDelay(500);
-//   }
-// }
+    sprintf(idBuff, "%s%02X%02X%02X", clientIdPrefix, mac[3], mac[4], mac[5]);
+}
 
-// void EC_task(void *pvParameters)
-// {
-//   (void)pvParameters;
-//   while (1)
-//   {
-//     ecdata = ecMeasurement.read();
-//     vTaskDelay(500);
-//   }
-// }
+void printSensorValue(Temperature_t temp)
+{
+    Serial.printf("Temperatur : %4.2f ℃\n", temp.temp);
+}
 
-// void pH_task(void *pvParameters)
-// {
-//   (void)pvParameters;
-//   while (1)
-//   {
-//     phdata = phMeasurement.read();
-//     Serial.println("pH:\t" + String(phdata) + "\t");
-//     vTaskDelay(500);
-//   }
-// }
+void setupMDNSResponder(char *hostname)
+{
+    // Serial.printf("hosname: %s\n", hostname);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(mdns_init());
+    ESP_ERROR_CHECK_WITHOUT_ABORT(mdns_hostname_set(hostname));
+    ESP_LOGI("MAIN", "MDNS hostname: %s", hostname);
 
-// void server_task(void *pvParameters)
-// {
-//   (void)pvParameters;
-//   while (1)
-//   {
-//     server.handleClient();
-//     receivedData = String(DOdata / 1000);
-//     tb.sendTelemetryFloat("data DO", DOdata);
-//     tb.sendTelemetryFloat("data EC", ecdata);
-//     tb.sendTelemetryFloat("data pH", phdata);
-//     // tb.sendTelemetryInt("data turbidity", turbiditydata);
-//     vTaskDelay(5000);
-//   }
-// }
+    // OTA Service decription
+    mdns_txt_item_t serviceTxtData[4] = {
+        {"HW version", "v1"},
+        {"FW version", CONFIG_MAIN_FW_VERSION_STRING},
+        {"Device", "WQMD"},
+        {"path", "/"}};
+
+    ESP_ERROR_CHECK_WITHOUT_ABORT(mdns_service_add(NULL, "_http", "_tcp", 80, serviceTxtData, 3));
+}
