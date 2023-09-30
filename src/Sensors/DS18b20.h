@@ -16,6 +16,7 @@ public:
     ~DS18B20();
     bool begin();
     void measure(Temperature_t &value);
+    void filter(float paramToFilter, Temperature_t& value);
 
 private:
     float getValue();

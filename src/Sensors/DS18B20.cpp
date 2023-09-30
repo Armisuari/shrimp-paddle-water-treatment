@@ -38,8 +38,8 @@ void DS18B20::measure(Temperature_t &value)
         return;
     }
 
-    float temperature = getValue();
-    value.temp = temperature;
+    float temp = getValue();
+    value.temp = temp;
 }
 
 float DS18B20::getValue()
@@ -63,4 +63,9 @@ float DS18B20::getValue()
     float temperature = (float)rawTemperature / 16.0;
 
     return temperature;
+}
+
+void DS18B20::filter(float paramToFilter, Temperature_t& value)
+{
+    value.temp = paramToFilter;
 }
