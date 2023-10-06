@@ -38,10 +38,14 @@
 #define CONFIG_SENSOR_ADS_PIN_DO                         (0)
 #endif /*CONFIG_SENSOR_ADS_PIN_DO*/
 
+#ifndef CONFIG_TB_MSG_BUFF
+#define CONFIG_TB_MSG_BUFF                               (8192)
+#endif /*CONFIG_TB_MSG_BUFF*/
+
 #if __has_include("TBCredentials.h")
     #include "TBCredentials.h"
 #else
-    #error Buat File "TBCredentials.h" yang berisi configurasi untuk thingboard DPS
+    #error Buat File "TBCredentials.h" yang berisi configurasi untuk thingboard token
     
-    #define CONFIG_TB_TOKEN      ""
+    #define CONFIG_TB_TOKEN      "YOUR ACCES TOKEN"
 #endif /*__has_include("TBCredentials.h")*/
