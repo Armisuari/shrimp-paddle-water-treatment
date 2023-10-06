@@ -5,14 +5,16 @@
 #include "mdns.h"
 #include "ServerHandler.h"
 
+#include "ThingsboardApp/TBHandler.h" // Import the correct ThingsBoard header
+#include "TelemetryPublish.h"
+#include "TBCredentials.h"
+
 // include sensors library
 #include "Sensors/DS18b20.h"
 #include "Sensors/DOSensor.h"
 #include "Sensors/ECSensor.h"
 #include "Sensors/pHSensor.h"
 #include "Sensors/TurbSensor.h"
-
-#define KALMAN_FILTER
 
 // for smoothie reading purposes
 #ifdef KALMAN_FILTER
@@ -31,8 +33,11 @@ void setupMDNSResponder(char *hostname);
 WifiHandler wifi(CONFIG_MAIN_WIFI_DEFAULT_SSID, CONFIG_MAIN_WIFI_DEFAULT_PASS);
 ServerHandler server("myServer");
 
+TBHandler thingsBoard(CONFIG_TB_TOKEN); // Create a ThingsBoard object
+
 // sensor object
 DS18B20 tempSensor(CONFIG_SENSOR_TEMPERATURE_PIN);
+DOSensor DOsensor(0);
 
 // parameter value object
 Temperature_t tempValue;
@@ -42,7 +47,8 @@ Temperature_t tempValue;
 // NTP Server
 const char *ntpServer = "pool.ntp.org";
 
-void printSensorValue(Temperature_t temp);
+void taskReadPublish(void *pvParameter);
+void printSensorValue(Temperature_t tempVal, DO_Value doVal);
 void printToPlot(Temperature_t temp);
 
 void setup()
@@ -62,31 +68,74 @@ void setup()
     setupMDNSResponder(clientID);
 
     // NTP time sync
-    configTime(0, 0, ntpServer);
+    // configTime(0, 0, ntpServer);
+
+    // thingsboard
+    thingsBoard.setup("demo.thingsboard.io", 1883U, CONFIG_TB_MSG_BUFF); // Initialize the ThingsBoard object
+
     delay(2000);
 
-    // DS18B20::getValue();
-
+    // sensor begin
     tempSensor.begin();
+    DOsensor.init();
+
+    xTaskCreate(
+        taskReadPublish,
+        "task for read and publish",
+        4096,
+        NULL,
+        1,
+        NULL);
 }
 
 void loop()
 {
-    // vTaskDelete(NULL);
+    vTaskDelete(NULL);
+}
 
-    // parameter value object
-    Temperature_t tempValue;
+void taskReadPublish(void *pvParameter)
+{
+    TelemetryPublish publishData("ESP32-macca", CONFIG_TB_MSG_BUFF);
+    thingsBoard.addPublishSource(&publishData);
+    WaterQuality_t data;
 
-    tempSensor.measure(tempValue);
+    while (1)
+    {
 
-#ifdef KALMAN_FILTER
-    Temperature_t filTemp;
-    tempSensor.filter(kFilter.updateEstimate(tempValue.temp), filTemp);
+#ifndef KALMAN_FILTER
+        Temperature_t tempValue;
+        DO_Value DOvalue;
+
+        tempSensor.measure(tempValue);
+        DOsensor.Measure(DOvalue, tempValue);
+
+        data.temp = tempValue.temp;
+        data.DO = DOvalue.value;
+
+        printSensorValue(tempValue, DOvalue);
+        // printToPlot(tempValue);
+
+#else
+        Temperature_t filTemp;
+        DO_Value filDO;
+
+        tempSensor.filter(kFilter.updateEstimate(tempValue.temp), filTemp);
+        DOsensor.filter(kFilter.updateEstimate(filDO.value), filDO);
+
+        data.temp = filTemp.temp;
+        data.DO = filDO.value;
+
+        printSensorValue(filTemp, filDO);
+        // printToPlot(filTemp);
 #endif
 
-    // printSensorValue(tempValue);
-    printToPlot(tempValue);
-    vTaskDelay(1000);
+        printSensorValue(tempValue, DOvalue);
+        // printToPlot(tempValue);
+
+        publishData.writeSensorData(data);
+
+        vTaskDelay(5000);
+    }
 }
 
 void generateClientID(char *idBuff)
@@ -98,17 +147,24 @@ void generateClientID(char *idBuff)
     sprintf(idBuff, "%s%02X%02X%02X", clientIdPrefix, mac[3], mac[4], mac[5]);
 }
 
-void printSensorValue(Temperature_t value)
+void printSensorValue(Temperature_t tempVal, DO_Value doVal)
 {
-    Serial.println(" -----------------------");
-    Serial.printf("| Temperature | %4.2f ℃ |\n", value.temp);
-    Serial.println(" -----------------------");
+    Serial.println();
+
+    Serial.printf("Temperature (℃) : %4.2f\n", tempVal.temp);
+    Serial.printf("DO (mg/L) : %4.2f\n", doVal.value);
+    Serial.println("===========================");
+
+    Serial.println();
 }
 
-void printToPlot(Temperature_t value)
+void printToPlot(Temperature_t tempVal, DO_Value doVal)
 {
     Serial.print("temp:");
-    Serial.print(value.temp);
+    Serial.print(tempVal.temp);
+    Serial.print(",");
+    Serial.print("do:");
+    Serial.print(doVal.value);
     Serial.print(",");
 
     Serial.println();

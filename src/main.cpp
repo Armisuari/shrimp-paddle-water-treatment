@@ -15,8 +15,9 @@
 // #include "DO.h"
 // #include "client.h"
 
-// #include "Tes/wifi-test.hpp"
-// #include "Tes/DO-sensor-test.hpp"
-// #include "Tes/EC-sensor-test.hpp"
-// #include "Tes/PH-sensor-test.hpp"
-// #include "Tes/Turb-sensor-test.hpp"
+// #include "Sensors/example/DO-sensor-test.hpp"
+// #include "Sensors/example/EC-sensor-test.hpp"
+// #include "Sensors/example/PH-sensor-test.hpp"
+// #include "Sensors/example/Turb-sensor-test.hpp"
+
+// #include "ThingsboardApp/example/test-thingsboardApp.hpp"
