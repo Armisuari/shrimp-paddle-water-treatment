@@ -1,17 +1,16 @@
 #include "DOSensor.h"
 
-DOSensor::DOSensor(uint8_t pin) : _pin(pin), adcRaw(0), adcVoltage(0), ADS(new ADS1115(0x48))
+DOSensor::DOSensor(uint8_t pin) : _pin(pin), adcRaw(0), adcVoltage(0)
 {
 }
 
 DOSensor::~DOSensor()
 {
-    delete ADS;
 }
 
 bool DOSensor::init()
 {
-    if (ADS->begin())
+    if (ADS.begin())
     {
         _state = true;
         ESP_LOGI(DO_SENSOR_TAG, "DO sensor ready !");
@@ -57,7 +56,7 @@ bool DOSensor::calibrate(uint8_t gain)
 
 bool DOSensor::Measure(DO_Value &value)
 {
-    value.value = 2.3; // readValue();
+    value.value = readValue();
 
     if (value.value < 0)
     {
@@ -68,7 +67,7 @@ bool DOSensor::Measure(DO_Value &value)
     return true;
 }
 
-bool DOSensor::Measure(DO_Value &value, Temperature_t &tempVal)
+bool DOSensor::Measure(DO_Value &value, Temperature_t tempVal)
 {
     _temp = tempVal.temp;
     value.value = readValue();
@@ -100,9 +99,14 @@ float DOSensor::readValue()
         return 0.0; // Return a default value or handle the error state.
     }
 
-    ADS->setGain(_gain);
-    adcRaw = ADS->readADC(_pin);
+    ADS.setGain(_gain);
+    adcRaw = ADS.readADC(_pin);
     adcVoltage = static_cast<float>(VREF) * adcRaw / ADC_RES;
 
     return static_cast<float>(calcValue());
+}
+
+void DOSensor::filter(float paramToFilter, DO_Value &value)
+{
+    value.value = paramToFilter;
 }

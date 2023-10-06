@@ -34,14 +34,14 @@ private:
       7560, 7430, 7300, 7180, 7070, 6950, 6840, 6730, 6630, 6530, 6410};
 
   uint8_t _pin;
-  uint8_t _temp;
+  uint8_t _temp = 25;
   uint16_t adcRaw;
   uint16_t adcVoltage;
   uint8_t _gain;
   bool _state;
 
   TaskHandle_t taskHandle;
-  ADS1115 *ADS;
+  ADS1115 ADS;
 
   int16_t calcValue();
   float readValue();
@@ -53,5 +53,6 @@ public:
   bool init();
   bool calibrate(uint8_t gain);
   bool Measure(DO_Value &value);
-  bool Measure(DO_Value &value, Temperature_t &tempVal);
+  bool Measure(DO_Value &value, Temperature_t tempVal);
+  void filter(float paramToFilter, DO_Value& value);
 };
