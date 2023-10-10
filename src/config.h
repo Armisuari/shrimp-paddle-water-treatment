@@ -23,19 +23,19 @@
 #endif /*CONFIG_MAIN_MQTT_RAW_TOPIC_CONTABO*/
 
 #ifndef CONFIG_MAIN_WIFI_DEFAULT_SSID
-#define CONFIG_MAIN_WIFI_DEFAULT_SSID                   "eFisheryPlus"
+#define CONFIG_MAIN_WIFI_DEFAULT_SSID                   "Variasi Aluminium 1"
 #endif /*CONFIG_MAIN_WIFI_DEFAULT_SSID*/
 
 #ifndef CONFIG_MAIN_WIFI_DEFAULT_PASS
-#define CONFIG_MAIN_WIFI_DEFAULT_PASS                   "123123123"
+#define CONFIG_MAIN_WIFI_DEFAULT_PASS                   "hapisahsyukur2"
 #endif /*CONFIG_MAIN_WIFI_DEFAULT_PASS*/
 
 #ifndef CONFIG_SENSOR_TEMPERATURE_PIN
-#define CONFIG_SENSOR_TEMPERATURE_PIN                    (4)
+#define CONFIG_SENSOR_TEMPERATURE_PIN                    (5)
 #endif /*CONFIG_SENSOR_TEMPERATURE_PIN*/
 
 #ifndef CONFIG_SENSOR_ADS_PIN_DO
-#define CONFIG_SENSOR_ADS_PIN_DO                         (0)
+#define CONFIG_SENSOR_ADS_PIN_DO                         (2)
 #endif /*CONFIG_SENSOR_ADS_PIN_DO*/
 
 #ifndef CONFIG_TB_MSG_BUFF

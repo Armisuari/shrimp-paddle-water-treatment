@@ -37,7 +37,7 @@ TBHandler thingsBoard(CONFIG_TB_TOKEN); // Create a ThingsBoard object
 
 // sensor object
 DS18B20 tempSensor(CONFIG_SENSOR_TEMPERATURE_PIN);
-DOSensor DOsensor(0);
+DOSensor DOsensor(2);
 
 // parameter value object
 Temperature_t tempValue;

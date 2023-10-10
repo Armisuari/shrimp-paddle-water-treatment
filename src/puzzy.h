@@ -25,7 +25,7 @@ void FuzzyHandler::begin()
   fuzzy->addFuzzyInput(pH);
 
 // Fuzzy Input 4 Kekeruhan
-  FuzzyInput *Kekeruhan = new FuzzyInput(1);
+  FuzzyInput *Kekeruhan = new FuzzyInput(2);
   FuzzySet *Kekeruhan_Rendah = new FuzzySet(0, 0, 25, 55);
   Kekeruhan->addFuzzySet(Kekeruhan_Rendah);
   FuzzySet *Kekeruhan_Normal = new FuzzySet(45, 75, 75, 105);
@@ -35,7 +35,7 @@ void FuzzyHandler::begin()
   fuzzy->addFuzzyInput(Kekeruhan);
 
 // Fuzzy Input 5 Jarak
-  FuzzyInput *Jarak = new FuzzyInput(1);
+  FuzzyInput *Jarak = new FuzzyInput(3);
   FuzzySet *Jarak_Dangkal = new FuzzySet(0, 0, 30, 70);
   Jarak->addFuzzySet(Jarak_Dangkal);
   FuzzySet *Jarak_Sedang = new FuzzySet(50, 70, 80, 100);
@@ -45,7 +45,7 @@ void FuzzyHandler::begin()
   fuzzy->addFuzzyInput(Jarak);
 
 // Fuzzy Input 6 EC
-  FuzzyInput *EC = new FuzzyInput(1);
+  FuzzyInput *EC = new FuzzyInput(4);
   FuzzySet *EC_Rendah = new FuzzySet(0, 0, 10, 15);
   EC->addFuzzySet(EC_Rendah);
   FuzzySet *EC_Normal = new FuzzySet(10, 15, 20, 25);
