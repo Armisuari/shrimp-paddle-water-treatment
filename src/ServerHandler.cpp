@@ -13,23 +13,28 @@ ServerHandler::~ServerHandler()
 
 bool ServerHandler::begin()
 {
-    if (!WiFi.softAP(apSSID_))
-    {
-        ESP_LOGW(serverTag, "Failed to active AP server");
-        return false;
-    }
-    else
-    {
-        // server.on("/tes", handleRoot);
-        server->on("/GetData", [this]() {
+    // IPAddress staticIP(192, 168, 8, 200); // Define your desired static IP address
+    // IPAddress gateway(192, 168, 8, 1);    // Define your gateway IP address
+    // IPAddress subnet(255, 255, 255, 0);   // Define your subnet mask
+
+    // if (!WiFi.config(staticIP, gateway, subnet))
+    // {
+    //     ESP_LOGW(serverTag, "Failed to active AP server");
+    //     return false;
+    // }
+    // else
+    // {
+    // server.on("/tes", handleRoot);
+    server->on("/GetData", [this]()
+               {
             if(server)
             {
                 server->send(200, "text/plain", receiveData_);
-            }
-        });
-        server->begin();
-        ESP_LOGI(serverTag, "server activated with name '%s' and IP %s", apSSID_, WiFi.softAPIP().toString().c_str());
-    }
+            } });
+    server->begin();
+    // ESP_LOGI(serverTag, "server activated with name '%s' and IP %s", apSSID_, WiFi.softAPIP().toString().c_str());
+    ESP_LOGI(serverTag, "server activated with name '%s' and IP %s", apSSID_, WiFi.localIP().toString().c_str());
+    // }
 
     // Create the task regardless of the connection status
     xTaskCreate(&ServerHandler::_staticTaskFunc,
@@ -42,7 +47,7 @@ bool ServerHandler::begin()
     return true;
 }
 
-void ServerHandler::postToClient(String &storedVar)
+void ServerHandler::postToClient(String storedVar)
 {
     receiveData_ = storedVar;
 }
@@ -59,7 +64,7 @@ void ServerHandler::_taskFunc()
     while (1)
     {
         server->handleClient();
-        vTaskDelay(200);
+        // vTaskDelay(200);
     }
     delete server;
     vTaskDelete(NULL);
