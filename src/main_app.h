@@ -16,6 +16,8 @@
 #include "Sensors/pHSensor.h"
 #include "Sensors/TurbSensor.h"
 
+#define KALMAN_FILTER
+
 // for smoothie reading purposes
 #ifdef KALMAN_FILTER
 #include <SimpleKalmanFilter.h>
@@ -123,6 +125,8 @@ void taskReadPublish(void *pvParameter)
             DOvalue.value);
 
     server.postToClient(buff);
+    printSensorValue(tempValue, DOvalue);
+    // printToPlot(tempValue);
 
 #else
     Temperature_t filTemp;
@@ -137,9 +141,6 @@ void taskReadPublish(void *pvParameter)
     printSensorValue(filTemp, filDO);
     // printToPlot(filTemp);
 #endif
-
-    printSensorValue(tempValue, DOvalue);
-    // printToPlot(tempValue);
 
     publishData.writeSensorData(data);
 
@@ -190,7 +191,7 @@ void setupMDNSResponder(char *hostname)
   mdns_txt_item_t serviceTxtData[4] = {
       {"HW version", "v1"},
       {"FW version", CONFIG_MAIN_FW_VERSION_STRING},
-      {"Device", "WQMD"},
+      {"Device", "WQ"},
       {"path", "/"}};
 
   ESP_ERROR_CHECK_WITHOUT_ABORT(mdns_service_add(NULL, "_http", "_tcp", 80, serviceTxtData, 3));
