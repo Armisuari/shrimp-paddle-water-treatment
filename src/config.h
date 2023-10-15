@@ -42,6 +42,10 @@
 #define CONFIG_SENSOR_ADS_PIN_DO                         (2)
 #endif /*CONFIG_SENSOR_ADS_PIN_DO*/
 
+#ifndef CONFIG_SENSOR_ADS_PIN_EC
+#define CONFIG_SENSOR_ADS_PIN_EC                         (3)
+#endif /*CONFIG_SENSOR_ADS_PIN_DO*/
+
 #ifndef CONFIG_TB_MSG_BUFF
 #define CONFIG_TB_MSG_BUFF                               (8192)
 #endif /*CONFIG_TB_MSG_BUFF*/
