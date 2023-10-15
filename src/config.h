@@ -23,16 +23,20 @@
 #endif /*CONFIG_MAIN_MQTT_RAW_TOPIC_CONTABO*/
 
 #ifndef CONFIG_MAIN_WIFI_DEFAULT_SSID
-#define CONFIG_MAIN_WIFI_DEFAULT_SSID                   "Variasi Aluminium 1"
+#define CONFIG_MAIN_WIFI_DEFAULT_SSID                   "MikroTik-61E76E"
 #endif /*CONFIG_MAIN_WIFI_DEFAULT_SSID*/
 
 #ifndef CONFIG_MAIN_WIFI_DEFAULT_PASS
-#define CONFIG_MAIN_WIFI_DEFAULT_PASS                   "hapisahsyukur2"
+#define CONFIG_MAIN_WIFI_DEFAULT_PASS                   ""
 #endif /*CONFIG_MAIN_WIFI_DEFAULT_PASS*/
 
 #ifndef CONFIG_SENSOR_TEMPERATURE_PIN
 #define CONFIG_SENSOR_TEMPERATURE_PIN                    (5)
 #endif /*CONFIG_SENSOR_TEMPERATURE_PIN*/
+
+#ifndef CONFIG_SENSOR_ADS_PIN_PH
+#define CONFIG_SENSOR_ADS_PIN_PH                         (1)
+#endif /*CONFIG_SENSOR_ADS_PIN_DO*/
 
 #ifndef CONFIG_SENSOR_ADS_PIN_DO
 #define CONFIG_SENSOR_ADS_PIN_DO                         (2)

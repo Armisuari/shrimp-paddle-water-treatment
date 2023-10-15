@@ -37,7 +37,8 @@ TBHandler thingsBoard(CONFIG_TB_TOKEN); // Create a ThingsBoard object
 
 // sensor object
 DS18B20 tempSensor(CONFIG_SENSOR_TEMPERATURE_PIN);
-DOSensor DOsensor(2);
+DOSensor DOsensor(CONFIG_SENSOR_ADS_PIN_DO);
+pHSensor pHsensor(CONFIG_SENSOR_ADS_PIN_PH);
 
 // parameter value object
 Temperature_t tempValue;
@@ -48,7 +49,7 @@ Temperature_t tempValue;
 const char *ntpServer = "pool.ntp.org";
 
 void taskReadPublish(void *pvParameter);
-void printSensorValue(Temperature_t tempVal, DO_Value doVal);
+void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue);
 void printToPlot(Temperature_t temp);
 
 void setup()
@@ -78,6 +79,7 @@ void setup()
     // sensor begin
     tempSensor.begin();
     DOsensor.init();
+    pHsensor.init();
 
     xTaskCreate(
         taskReadPublish,
@@ -105,14 +107,18 @@ void taskReadPublish(void *pvParameter)
 #ifndef KALMAN_FILTER
         Temperature_t tempValue;
         DO_Value DOvalue;
+        pH_Value phvalue;
 
         tempSensor.measure(tempValue);
         DOsensor.Measure(DOvalue, tempValue);
+        pHsensor.measure(phvalue);
+
 
         data.temp = tempValue.temp;
         data.DO = DOvalue.value;
+        data.pH = phvalue.value;
 
-        printSensorValue(tempValue, DOvalue);
+        printSensorValue(tempValue, DOvalue, phvalue);
         // printToPlot(tempValue);
 
 #else
@@ -129,7 +135,7 @@ void taskReadPublish(void *pvParameter)
         // printToPlot(filTemp);
 #endif
 
-        printSensorValue(tempValue, DOvalue);
+        printSensorValue(tempValue, DOvalue, phvalue);
         // printToPlot(tempValue);
 
         publishData.writeSensorData(data);
@@ -147,24 +153,28 @@ void generateClientID(char *idBuff)
     sprintf(idBuff, "%s%02X%02X%02X", clientIdPrefix, mac[3], mac[4], mac[5]);
 }
 
-void printSensorValue(Temperature_t tempVal, DO_Value doVal)
+void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
 {
     Serial.println();
 
     Serial.printf("Temperature (℃) : %4.2f\n", tempVal.temp);
     Serial.printf("DO (mg/L) : %4.2f\n", doVal.value);
+    Serial.printf("pH : %4.2f\n", phvalue.value );
     Serial.println("===========================");
 
     Serial.println();
 }
 
-void printToPlot(Temperature_t tempVal, DO_Value doVal)
+void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
 {
     Serial.print("temp:");
     Serial.print(tempVal.temp);
     Serial.print(",");
     Serial.print("do:");
     Serial.print(doVal.value);
+    Serial.print(",");
+    Serial.print("pH:");
+    Serial.print(phvalue.value);
     Serial.print(",");
 
     Serial.println();
