@@ -4,6 +4,7 @@
 // #include "fuzzy_speed.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include "LCDHandler.h"
 
 const char* ssid = "ESP-SoftAP";
 const char* password = "";
@@ -20,6 +21,7 @@ dimmerLamp acd(acdPin,zeroCrossPin);
 #define relay 13
 
 FuzzyHandler fz;
+LCDHandler lcdhandler;
 
 int hasil;
 int state=1;
@@ -36,6 +38,7 @@ void setup() {
   Serial.begin(115200);
   fz.begin();
   acd.begin(NORMAL_MODE, ON);
+  lcdhandler.init();
 
   pinMode(23, INPUT_PULLUP);
   pinMode(22, INPUT_PULLUP);
@@ -53,7 +56,7 @@ void setup() {
   xTaskCreatePinnedToCore(fz_task, "Fuzzy Task", 1024 * 2, NULL, 10, NULL, 1);
   // xTaskCreatePinnedToCore(bt_task, "Button Task", 1024 * 2, NULL, 5, NULL, 1);
   // xTaskCreatePinnedToCore(mn_task, "Manual Task", 1024 * 2, NULL, 10, NULL, 1);
-  xTaskCreatePinnedToCore(cl_task, "Client Task", 1024 * 4, NULL, 15, NULL, 1);
+  // xTaskCreatePinnedToCore(cl_task, "Client Task", 1024 * 4, NULL, 15, NULL, 1);
 }
 
 void loop() {
@@ -75,6 +78,8 @@ void fz_task(void *pvParameters){
       fz.fuzify(); // Menghitung keluaran logika fuzzy
       hasil = fz.output(); // Mendapatkan nilai keluaran logika fuzzy
       Serial.printf("output Fuzzy: %d\n", hasil);
+      lcdhandler.cetak(0,0,"output Fuzzy:");
+      lcdhandler.cetak(0,1,String(hasil));
       digitalWrite(relay,hasil);
       // acd.setPower(hasil);
       // Serial.print("Motor Value -> ");
@@ -123,33 +128,33 @@ void mn_task(void *pvParameters){
   }
 }
 
-void cl_task(void *pvParameters){
-  (void) pvParameters;
-  for(;;){
-      if (WiFi.status() == WL_CONNECTED) {
-      HTTPClient http;
+// void cl_task(void *pvParameters){
+//   (void) pvParameters;
+//   for(;;){
+//       if (WiFi.status() == WL_CONNECTED) {
+//       HTTPClient http;
 
-    String url = "http://" + String(targetIP) + ":" + String(targetPort) + "/tes"; // Adjust the URL accordingly
+//     String url = "http://" + String(targetIP) + ":" + String(targetPort) + "/tes"; // Adjust the URL accordingly
 
-    Serial.print("Connecting to ");
-    Serial.println(url);
+//     Serial.print("Connecting to ");
+//     Serial.println(url);
 
-    http.begin(url);
-    int httpCode = http.GET();
+//     http.begin(url);
+//     int httpCode = http.GET();
 
-    if (httpCode > 0) {
-      String payload = http.getString();
-      Serial.println("HTTP response code: " + String(httpCode));
-      Serial.println("Received data: " + payload);
-    } else {
-      Serial.println("HTTP request failed");
-    }
+//     if (httpCode > 0) {
+//       String payload = http.getString();
+//       Serial.println("HTTP response code: " + String(httpCode));
+//       Serial.println("Received data: " + payload);
+//     } else {
+//       Serial.println("HTTP request failed");
+//     }
 
-    http.end();
-  }
+//     http.end();
+//   }
 
-  vTaskDelay(3000); // Wait for a while before making the next request
-  }
-}
+//   vTaskDelay(3000); // Wait for a while before making the next request
+//   }
+// }
 
 
