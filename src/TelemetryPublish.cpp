@@ -50,10 +50,11 @@ std::string TelemetryPublish::_formatSensorDataJson(WaterQuality_t data)
             "\"EC\": %.2f,"
             "\"PH\": %.2f,"
             "\"turb\": %.2f,"
-            "\"temp\": %.2f"
+            "\"temp\": %.2f,"
+            "\"jarak\": %d"
             "}",
-            data.DO, data.EC, data.pH,
-            data.turbidity, data.temp);
+            data.DO/1000, data.EC, data.pH,
+            data.turbidity, data.temp, data.jarak);
 
     return std::string(buffer);
 }

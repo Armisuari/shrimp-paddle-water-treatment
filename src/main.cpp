@@ -19,6 +19,8 @@
 // #include "Sensors/example/EC-sensor-test.hpp"
 // #include "Sensors/example/PH-sensor-test.hpp"
 // #include "Sensors/example/Turb-sensor-test.hpp"
+// #include "Sensors/example/lcdtes.hpp"
+// #include "Sensors/example/i2cscanner.hpp"
 
 // #include "ThingsboardApp/example/test-thingsboardApp.hpp"
 

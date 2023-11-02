@@ -10,6 +10,8 @@
 #include "TelemetryPublish.h"
 #include "TBCredentials.h"
 
+#include "puzzy.h"
+
 // include sensors library
 #include "Sensors/DS18b20.h"
 #include "Sensors/DOSensor.h"
@@ -31,6 +33,9 @@ char clientID[sizeof(CONFIG_MAIN_CLIENT_ID_PREFIX) + 6];
 
 void generateClientID(char *idBuff);
 void setupMDNSResponder(char *hostname);
+
+//Fuzzy
+FuzzyHandler myfuzzy;
 
 //LCD
 LiquidCrystal_I2C mylcd(0x27,20,4);
@@ -59,6 +64,7 @@ Temperature_t tempValue;
 void taskReadPublish(void *pvParameter);
 void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, EC_Value ecvalue);
 void printToPlot(Temperature_t temp);
+void fuzzy_task(JSN jarakvalue, DO_Value doVal, pH_Value phvalue, EC_Value ecvalue);
 
 void setup()
 {
@@ -68,6 +74,9 @@ void setup()
   //LCD setup
   mylcd.init();
   mylcd.backlight();
+
+  //Fuzzy Setup
+  myfuzzy.begin();
 
   // connectivity setup
   wifi.init();
@@ -92,7 +101,7 @@ void setup()
     tempSensor.begin();
     DOsensor.init();
     pHsensor.init();
-    // ecsensor.init();
+    ecsensor.init(tempValue);
     jarak.init();
     
 
@@ -124,22 +133,24 @@ void taskReadPublish(void *pvParameter)
         DO_Value DOvalue;
         pH_Value phvalue;
         EC_Value ecvalue;
+        JSN jarakvalue;
 
 
         tempSensor.measure(tempValue);
         DOsensor.Measure(DOvalue, tempValue);
         pHsensor.measure(phvalue);
         ecsensor.measure(ecvalue, tempValue);
-        jarak.measure();
+        jarakvalue.measure();
 
 
         data.temp = tempValue.temp;
         data.DO = DOvalue.value;
         data.pH = phvalue.value;
         data.EC = ecvalue.value;
-        // data.jarak = jarak.measure;
+        data.jarak = jarak.measure();
 
         printSensorValue(tempValue, DOvalue, phvalue, ecvalue);
+        // fuzzy_task(jarak.measure(),DOvalue,phvalue,ecvalue);
         // printToPlot(tempValue);
 
     char buff[20];
@@ -198,19 +209,19 @@ void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, E
 
     mylcd.setCursor(0,0);
     mylcd.print("Temp :");
-    mylcd.setCursor(0,8);
+    mylcd.setCursor(8,0);
     mylcd.print(tempVal.temp);
-    mylcd.setCursor(1,0);
+    mylcd.setCursor(0,1);
     mylcd.print("DO :");
-    mylcd.setCursor(1,6);
+    mylcd.setCursor(6,1);
     mylcd.print(doVal.value/1000);
-    mylcd.setCursor(2,0);
+    mylcd.setCursor(0,2);
     mylcd.print("Jarak:");
-    mylcd.setCursor(2,8);
+    mylcd.setCursor(8,2);
     mylcd.print(jarak.measure());
-    mylcd.setCursor(3,0);
+    mylcd.setCursor(0,3);
     mylcd.print("pH :");
-    mylcd.setCursor(3,6);
+    mylcd.setCursor(6,3);
     mylcd.print(phvalue.value);
 
   Serial.println();
@@ -222,7 +233,7 @@ void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, EC_Val
     Serial.print(tempVal.temp);
     Serial.print(",");
     Serial.print("do:");
-    Serial.print(doVal.value);
+    Serial.print(doVal.value/1000);
     Serial.print(",");
     Serial.print("pH:");
     Serial.print(phvalue.value);
@@ -232,6 +243,19 @@ void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, EC_Val
     Serial.print(",");
 
   Serial.println();
+}
+
+void fuzzy_task(JSN jarakvalue, DO_Value doVal, pH_Value phvalue, EC_Value ecvalue){
+  myfuzzy.setinput(1,phvalue.value);
+  myfuzzy.setinput(2,doVal.value);
+  myfuzzy.setinput(3, jarakvalue.measure());
+  myfuzzy.setinput(4, ecvalue.value);
+
+  fuzzy->fuzzify();
+
+  int out = fuzzy->defuzzify(1);
+  Serial.print("out fuzzy = ");
+  Serial.println(out);
 }
 
 void setupMDNSResponder(char *hostname)
