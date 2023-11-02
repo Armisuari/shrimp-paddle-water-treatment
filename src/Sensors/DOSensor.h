@@ -5,7 +5,7 @@
 #include "DS18b20.h"
 
 #define VREF 3300     // VREF (mV)
-#define ADC_RES 26470 // ADC Resolution
+#define ADC_RES 100 // ADC Resolution
 #define TWO_POINT_CALIBRATION 0
 
 // Single point calibration needs to be filled CAL1_V and CAL1_T

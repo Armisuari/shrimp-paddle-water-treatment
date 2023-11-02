@@ -4,6 +4,7 @@
 #include "config.h"
 #include "mdns.h"
 #include "ServerHandler.h"
+#include "LiquidCrystal_I2C.h"
 
 #include "ThingsboardApp/TBHandler.h" // Import the correct ThingsBoard header
 #include "TelemetryPublish.h"
@@ -15,6 +16,8 @@
 #include "Sensors/ECSensor.h"
 #include "Sensors/pHSensor.h"
 #include "Sensors/TurbSensor.h"
+#include "Sensors/JSN.h"
+#include "Sensors/tesdo.h"
 
 // for smoothie reading purposes
 #ifdef KALMAN_FILTER
@@ -29,6 +32,9 @@ char clientID[sizeof(CONFIG_MAIN_CLIENT_ID_PREFIX) + 6];
 void generateClientID(char *idBuff);
 void setupMDNSResponder(char *hostname);
 
+//LCD
+LiquidCrystal_I2C mylcd(0x27,20,4);
+
 // connectivity
 WifiHandler wifi(CONFIG_MAIN_WIFI_DEFAULT_SSID, CONFIG_MAIN_WIFI_DEFAULT_PASS);
 ServerHandler server("myServer");
@@ -40,6 +46,7 @@ DS18B20 tempSensor(CONFIG_SENSOR_TEMPERATURE_PIN);
 DOSensor DOsensor(CONFIG_SENSOR_ADS_PIN_DO);
 pHSensor pHsensor(CONFIG_SENSOR_ADS_PIN_PH);
 ECSensor ecsensor(CONFIG_SENSOR_ADS_PIN_EC);
+JSN jarak;
 
 // parameter value object
 Temperature_t tempValue;
@@ -50,13 +57,17 @@ Temperature_t tempValue;
 // const char *ntpServer = "pool.ntp.org";
 
 void taskReadPublish(void *pvParameter);
-void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue);
+void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, EC_Value ecvalue);
 void printToPlot(Temperature_t temp);
 
 void setup()
 {
   Serial.begin(115200);
   generateClientID(clientID); // Generate clientID based on MAC Addr
+
+  //LCD setup
+  mylcd.init();
+  mylcd.backlight();
 
   // connectivity setup
   wifi.init();
@@ -81,6 +92,9 @@ void setup()
     tempSensor.begin();
     DOsensor.init();
     pHsensor.init();
+    // ecsensor.init();
+    jarak.init();
+    
 
   xTaskCreate(
       taskReadPublish,
@@ -109,17 +123,23 @@ void taskReadPublish(void *pvParameter)
         Temperature_t tempValue;
         DO_Value DOvalue;
         pH_Value phvalue;
+        EC_Value ecvalue;
+
 
         tempSensor.measure(tempValue);
         DOsensor.Measure(DOvalue, tempValue);
         pHsensor.measure(phvalue);
+        ecsensor.measure(ecvalue, tempValue);
+        jarak.measure();
 
 
         data.temp = tempValue.temp;
         data.DO = DOvalue.value;
         data.pH = phvalue.value;
+        data.EC = ecvalue.value;
+        // data.jarak = jarak.measure;
 
-        printSensorValue(tempValue, DOvalue, phvalue);
+        printSensorValue(tempValue, DOvalue, phvalue, ecvalue);
         // printToPlot(tempValue);
 
     char buff[20];
@@ -145,7 +165,7 @@ void taskReadPublish(void *pvParameter)
     // printToPlot(filTemp);
 #endif
 
-        printSensorValue(tempValue, DOvalue, phvalue);
+        printSensorValue(tempValue, DOvalue, phvalue, ecvalue);
         // printToPlot(tempValue);
 
     publishData.writeSensorData(data);
@@ -163,19 +183,40 @@ void generateClientID(char *idBuff)
   sprintf(idBuff, "%s%02X%02X%02X", clientIdPrefix, mac[3], mac[4], mac[5]);
 }
 
-void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
+void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, EC_Value ecvalue)
 {
   Serial.println();
 
     Serial.printf("Temperature (℃) : %4.2f\n", tempVal.temp);
-    Serial.printf("DO (mg/L) : %4.2f\n", doVal.value);
-    Serial.printf("pH : %4.2f\n", phvalue.value );
+    Serial.printf("DO (mg/L) : %4.2f\n", doVal.value/1000);
+    // Serial.printf("DO (mg/L) : %4.2f\n", sensor.data());
+    Serial.printf("pH : %4.2f\n", phvalue.value);
+    Serial.printf("EC : %f\n", ecvalue.value);
+    Serial.printf("Jarak: %d\n", jarak.measure());
     Serial.println("===========================");
+
+
+    mylcd.setCursor(0,0);
+    mylcd.print("Temp :");
+    mylcd.setCursor(0,8);
+    mylcd.print(tempVal.temp);
+    mylcd.setCursor(1,0);
+    mylcd.print("DO :");
+    mylcd.setCursor(1,6);
+    mylcd.print(doVal.value/1000);
+    mylcd.setCursor(2,0);
+    mylcd.print("Jarak:");
+    mylcd.setCursor(2,8);
+    mylcd.print(jarak.measure());
+    mylcd.setCursor(3,0);
+    mylcd.print("pH :");
+    mylcd.setCursor(3,6);
+    mylcd.print(phvalue.value);
 
   Serial.println();
 }
 
-void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
+void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, EC_Value ecvalue)
 {
     Serial.print("temp:");
     Serial.print(tempVal.temp);
@@ -185,6 +226,9 @@ void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
     Serial.print(",");
     Serial.print("pH:");
     Serial.print(phvalue.value);
+    Serial.print(",");
+    Serial.print("EC:");
+    Serial.print(ecvalue.value);
     Serial.print(",");
 
   Serial.println();

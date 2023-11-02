@@ -52,7 +52,7 @@ bool pHSensor::measure(pH_Value &_value)
     }
 
     _value.voltage = ads.readADC_SingleEnded(_ADSPin) / 10;
-    _value.value = 13200.4; // ec.readEC(_value.voltage, _temp);
+    _value.value = ph.readPH(_value.voltage,25); // ec.readEC(_value.voltage, _temp);
 
     return true;
 }

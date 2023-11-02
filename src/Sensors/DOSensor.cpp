@@ -99,11 +99,12 @@ float DOSensor::readValue()
         return 0.0; // Return a default value or handle the error state.
     }
 
-    ADS.setGain(_gain);
+    ADS.setGain(0);
     adcRaw = ADS.readADC(_pin);
     adcVoltage = static_cast<float>(VREF) * adcRaw / ADC_RES;
 
     return static_cast<float>(calcValue());
+    // return adcVoltage;
 }
 
 void DOSensor::filter(float paramToFilter, DO_Value &value)

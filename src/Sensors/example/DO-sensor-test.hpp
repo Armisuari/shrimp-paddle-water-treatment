@@ -22,9 +22,9 @@ void setup()
     tempSensor.measure(tempVal);
 
     DO_sensor.init();
-    // DO_sensor.calibrate(0);
-    // DO_sensor.Measure(DOvalue);
-    DO_sensor.Measure(DOvalue, tempVal);
+    DO_sensor.calibrate(0);
+    DO_sensor.Measure(DOvalue);
+    // DO_sensor.Measure(DOvalue, tempVal);
 
     // Serial.printf("Temperature value : %4.2f %\n", tempVal.temp);
 
@@ -34,5 +34,6 @@ void setup()
 
 void loop()
 {
-    vTaskDelete(NULL);
+    Serial.printf("DO value : %4.2f % | Temp : %4.2f ℃\n", DOvalue.value, tempVal.temp);
+    vTaskDelay(500);
 }

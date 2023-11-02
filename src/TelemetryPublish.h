@@ -10,6 +10,7 @@ typedef struct
     float EC;
     float pH;
     float turbidity = 0;
+    int jarak;
 
 } WaterQuality_t;
 

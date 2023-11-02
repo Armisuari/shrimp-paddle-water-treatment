@@ -54,7 +54,7 @@ bool ECSensor::measure(EC_Value &_value, Temperature_t Tcompensation)
 
     _value.voltage = ads.readADC_SingleEnded(_ADSPin) / 10;
     _temp = Tcompensation.temp;
-    _value.value = 13200.4; // ec.readEC(_value.voltage, _temp);
+    _value.value = ec.readEC(_value.voltage, _temp); // ec.readEC(_value.voltage, _temp);
 
     return true;
 }
