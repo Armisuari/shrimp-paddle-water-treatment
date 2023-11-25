@@ -1,9 +1,13 @@
+// 1. retest json publish to thingsboard
+// 2. retest json publish to client
+// 3. test get and parse json msg from server
+
 #include <Arduino.h>
 #include <WifiHandler.h>
 
 #include "config.h"
 #include "mdns.h"
-#include "ServerHandler.h"
+#include "servers/ServerHandler.h"
 
 #include "ThingsboardApp/TBHandler.h" // Import the correct ThingsBoard header
 #include "TelemetryPublish.h"
@@ -16,7 +20,7 @@
 #include "Sensors/pHSensor.h"
 #include "Sensors/TurbSensor.h"
 
-#define KALMAN_FILTER
+// #define KALMAN_FILTER
 
 // for smoothie reading purposes
 #ifdef KALMAN_FILTER
@@ -43,17 +47,14 @@ DOSensor DOsensor(CONFIG_SENSOR_ADS_PIN_DO);
 pHSensor pHsensor(CONFIG_SENSOR_ADS_PIN_PH);
 ECSensor ecsensor(CONFIG_SENSOR_ADS_PIN_EC);
 
-// parameter value object
-Temperature_t tempValue;
-
 #define AMOUNT_OF_AVERAGE_DATA 3
 
-// NTP Server
-// const char *ntpServer = "pool.ntp.org";
-
 void taskReadPublish(void *pvParameter);
-void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue);
-void printToPlot(Temperature_t temp);
+void printSensorValue(WaterQuality_t data);
+void printToPlot(WaterQuality_t data);
+
+// struc to store sensor data to publish
+WaterQuality_t data;
 
 void setup()
 {
@@ -62,10 +63,6 @@ void setup()
 
   // connectivity setup
   wifi.init();
-
-  // NTP time sync
-//   configTime(0, 0, ntpServer);
-
   server.begin();
 
   // MDNS
@@ -79,10 +76,10 @@ void setup()
 
   delay(2000);
 
-    // sensor begin
-    tempSensor.begin();
-    DOsensor.init();
-    pHsensor.init();
+  // sensor begin
+  tempSensor.begin();
+  DOsensor.init();
+  pHsensor.init();
 
   xTaskCreate(
       taskReadPublish,
@@ -98,43 +95,35 @@ void loop()
   vTaskDelete(NULL);
 }
 
+unsigned long prevMillis = 0;
+
 void taskReadPublish(void *pvParameter)
 {
   TelemetryPublish publishData("ESP32-macca", CONFIG_TB_MSG_BUFF);
   thingsBoard.addPublishSource(&publishData);
-  WaterQuality_t data;
 
   while (1)
   {
 
 #ifndef KALMAN_FILTER
-        Temperature_t tempValue;
-        DO_Value DOvalue;
-        pH_Value phvalue;
+    Temperature_t tempValue;
+    DO_Value DOvalue;
+    pH_Value phvalue;
 
-        tempSensor.measure(tempValue);
-        DOsensor.Measure(DOvalue, tempValue);
-        pHsensor.measure(phvalue);
+    // tempSensor.measure(tempValue);
+    // DOsensor.Measure(DOvalue, tempValue);
+    // pHsensor.measure(phvalue);
 
+    // data.temp = tempValue.temp;
+    // data.DO = DOvalue.value;
+    // data.pH = phvalue.value;
 
-        data.temp = tempValue.temp;
-        data.DO = DOvalue.value;
-        data.pH = phvalue.value;
+    data.temp = random(25.0, 30.0);
+    data.DO = random(5, 7);
+    data.pH = random(6.8, 7.0);
 
-        printSensorValue(tempValue, DOvalue, phvalue);
-        // printToPlot(tempValue);
-
-    char buff[20];
-    sprintf(buff,
-            "{"
-            "\"DO\": %.2f"
-            "}",
-            DOvalue.value);
-
-    server.postToClient(buff);
-    printSensorValue(tempValue, DOvalue);
-    // printToPlot(tempValue);
-
+    printSensorValue(data);
+    // printToPlot(data);
 #else
     Temperature_t filTemp;
     DO_Value filDO;
@@ -149,13 +138,42 @@ void taskReadPublish(void *pvParameter)
     // printToPlot(filTemp);
 #endif
 
-    printSensorValue(tempValue, DOvalue);
-    // printToPlot(tempValue);
+    server.postToClient(data.DO);
 
-    publishData.writeSensorData(data);
+    if (millis() - prevMillis >= 60000)
+    {
+      prevMillis = millis();
+      publishData.writeSensorData(data);
+    }
 
     vTaskDelay(5000);
   }
+}
+
+void printSensorValue(WaterQuality_t data)
+{
+  Serial.println();
+
+  Serial.printf("Temperature (℃) : %4.2f\n", data.temp);
+  Serial.printf("DO (mg/L) :       %4.2f\n", data.DO);
+  Serial.printf("pH :              %4.2f\n", data.pH);
+  Serial.println("======================");
+
+  Serial.println();
+}
+
+void printToPlot(WaterQuality_t data)
+{
+  Serial.print("temp:");
+  Serial.print(data.temp);
+  Serial.print(",");
+  Serial.print("do:");
+  Serial.print(data.DO);
+  Serial.print(",");
+  Serial.print("pH:");
+  Serial.print(data.pH);
+  Serial.print(",");
+  Serial.println();
 }
 
 void generateClientID(char *idBuff)
@@ -165,33 +183,6 @@ void generateClientID(char *idBuff)
   esp_read_mac(mac, ESP_MAC_WIFI_STA);
 
   sprintf(idBuff, "%s%02X%02X%02X", clientIdPrefix, mac[3], mac[4], mac[5]);
-}
-
-void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
-{
-  Serial.println();
-
-    Serial.printf("Temperature (℃) : %4.2f\n", tempVal.temp);
-    Serial.printf("DO (mg/L) : %4.2f\n", doVal.value);
-    Serial.printf("pH : %4.2f\n", phvalue.value );
-    Serial.println("===========================");
-
-  Serial.println();
-}
-
-void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
-{
-    Serial.print("temp:");
-    Serial.print(tempVal.temp);
-    Serial.print(",");
-    Serial.print("do:");
-    Serial.print(doVal.value);
-    Serial.print(",");
-    Serial.print("pH:");
-    Serial.print(phvalue.value);
-    Serial.print(",");
-
-  Serial.println();
 }
 
 void setupMDNSResponder(char *hostname)
@@ -205,7 +196,7 @@ void setupMDNSResponder(char *hostname)
   mdns_txt_item_t serviceTxtData[4] = {
       {"HW version", "v1"},
       {"FW version", CONFIG_MAIN_FW_VERSION_STRING},
-      {"Device", "WQ"},
+      {"Device", "server"},
       {"path", "/"}};
 
   ESP_ERROR_CHECK_WITHOUT_ABORT(mdns_service_add(NULL, "_http", "_tcp", 80, serviceTxtData, 3));
