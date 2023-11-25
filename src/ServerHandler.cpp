@@ -47,9 +47,16 @@ bool ServerHandler::begin()
     return true;
 }
 
-void ServerHandler::postToClient(String storedVar)
+void ServerHandler::postToClient(float storedVar)
 {
-    receiveData_ = storedVar;
+    char buff[20];
+    sprintf(buff,
+            "{"
+            "\"DO\": %4.2f"
+            "}",
+            storedVar);
+
+    receiveData_ = String(buff);
 }
 
 /*STATIC*/ void ServerHandler::_staticTaskFunc(void *parameter)

@@ -11,7 +11,7 @@ class ServerHandler
         ~ServerHandler();
 
         bool begin();
-        void postToClient(String storedVar);
+        void postToClient(float storedVar);
 
     private :
         static void _staticTaskFunc(void *parameter);
@@ -19,5 +19,5 @@ class ServerHandler
 
         WebServer *server;
         const char* apSSID_;
-        String receiveData_ = "23";
+        String receiveData_;
 };
