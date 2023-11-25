@@ -12,7 +12,7 @@ ECSensor::~ECSensor()
 {
 }
 
-bool ECSensor::init(Temperature_t &Tcompensation)
+bool ECSensor::init(Temperature_t Tcompensation)
 {
     EEPROM.begin(32);
     
@@ -37,7 +37,7 @@ void ECSensor::calibrate(EC_Value &_value)
     ec.calibration(_value.voltage, _temp);
 }
 
-bool ECSensor::measure(EC_Value &_value, Temperature_t &Tcompensation)
+bool ECSensor::measure(EC_Value &_value, Temperature_t Tcompensation)
 {
     if (!_isMeasureing)
     {

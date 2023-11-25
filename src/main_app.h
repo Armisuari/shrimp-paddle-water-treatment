@@ -40,6 +40,8 @@ TBHandler thingsBoard(CONFIG_TB_TOKEN); // Create a ThingsBoard object
 // sensor object
 DS18B20 tempSensor(CONFIG_SENSOR_TEMPERATURE_PIN);
 DOSensor DOsensor(CONFIG_SENSOR_ADS_PIN_DO);
+pHSensor pHsensor(CONFIG_SENSOR_ADS_PIN_PH);
+ECSensor ecsensor(CONFIG_SENSOR_ADS_PIN_EC);
 
 // parameter value object
 Temperature_t tempValue;
@@ -47,10 +49,10 @@ Temperature_t tempValue;
 #define AMOUNT_OF_AVERAGE_DATA 3
 
 // NTP Server
-const char *ntpServer = "pool.ntp.org";
+// const char *ntpServer = "pool.ntp.org";
 
 void taskReadPublish(void *pvParameter);
-void printSensorValue(Temperature_t tempVal, DO_Value doVal);
+void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue);
 void printToPlot(Temperature_t temp);
 
 void setup()
@@ -62,7 +64,7 @@ void setup()
   wifi.init();
 
   // NTP time sync
-  configTime(0, 0, ntpServer);
+//   configTime(0, 0, ntpServer);
 
   server.begin();
 
@@ -77,9 +79,10 @@ void setup()
 
   delay(2000);
 
-  // sensor begin
-  tempSensor.begin();
-  DOsensor.init();
+    // sensor begin
+    tempSensor.begin();
+    DOsensor.init();
+    pHsensor.init();
 
   xTaskCreate(
       taskReadPublish,
@@ -105,17 +108,21 @@ void taskReadPublish(void *pvParameter)
   {
 
 #ifndef KALMAN_FILTER
-    Temperature_t tempValue;
-    DO_Value DOvalue;
+        Temperature_t tempValue;
+        DO_Value DOvalue;
+        pH_Value phvalue;
 
-    tempSensor.measure(tempValue);
-    DOsensor.Measure(DOvalue, tempValue);
+        tempSensor.measure(tempValue);
+        DOsensor.Measure(DOvalue, tempValue);
+        pHsensor.measure(phvalue);
 
-    data.temp = tempValue.temp;
-    data.DO = DOvalue.value;
 
-    printSensorValue(tempValue, DOvalue);
-    // printToPlot(tempValue);
+        data.temp = tempValue.temp;
+        data.DO = DOvalue.value;
+        data.pH = phvalue.value;
+
+        printSensorValue(tempValue, DOvalue, phvalue);
+        // printToPlot(tempValue);
 
     char buff[20];
     sprintf(buff,
@@ -142,6 +149,9 @@ void taskReadPublish(void *pvParameter)
     // printToPlot(filTemp);
 #endif
 
+    printSensorValue(tempValue, DOvalue);
+    // printToPlot(tempValue);
+
     publishData.writeSensorData(data);
 
     vTaskDelay(5000);
@@ -157,25 +167,29 @@ void generateClientID(char *idBuff)
   sprintf(idBuff, "%s%02X%02X%02X", clientIdPrefix, mac[3], mac[4], mac[5]);
 }
 
-void printSensorValue(Temperature_t tempVal, DO_Value doVal)
+void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
 {
   Serial.println();
 
-  Serial.printf("Temperature (℃) : %4.2f\n", tempVal.temp);
-  Serial.printf("DO (mg/L) : %4.2f\n", doVal.value);
-  Serial.println("===========================");
+    Serial.printf("Temperature (℃) : %4.2f\n", tempVal.temp);
+    Serial.printf("DO (mg/L) : %4.2f\n", doVal.value);
+    Serial.printf("pH : %4.2f\n", phvalue.value );
+    Serial.println("===========================");
 
   Serial.println();
 }
 
-void printToPlot(Temperature_t tempVal, DO_Value doVal)
+void printToPlot(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue)
 {
-  Serial.print("temp:");
-  Serial.print(tempVal.temp);
-  Serial.print(",");
-  Serial.print("do:");
-  Serial.print(doVal.value);
-  Serial.print(",");
+    Serial.print("temp:");
+    Serial.print(tempVal.temp);
+    Serial.print(",");
+    Serial.print("do:");
+    Serial.print(doVal.value);
+    Serial.print(",");
+    Serial.print("pH:");
+    Serial.print(phvalue.value);
+    Serial.print(",");
 
   Serial.println();
 }

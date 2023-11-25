@@ -17,9 +17,9 @@ public:
     ECSensor(int ADSPin);
     ~ECSensor();
 
-    bool init(Temperature_t &Tcompensation);
+    bool init(Temperature_t Tcompensation);
     void calibrate(EC_Value& _value);
-    bool measure(EC_Value& _value, Temperature_t &Tcompensation);
+    bool measure(EC_Value& _value, Temperature_t Tcompensation);
 
 protected:
     Adafruit_ADS1115 ads;

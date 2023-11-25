@@ -51,7 +51,7 @@ bool TurbSensor::measure(Turb_Value& value)
     }
 
     value.voltage = ADS.readADC(_ADSPin);
-    value.value = value.voltage * (_lvlVoltage / 65536.0);
+    value.value = value.voltage * (_lvlVoltage / 17500.0);
 
     return true;
 }
