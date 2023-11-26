@@ -10,9 +10,9 @@ typedef struct
   bool setinput(int index, float input);
   bool fuzify();
   int output();
-} FuzzyHandler;
+} FuzzyHandlerS;
 
-void FuzzyHandler::begin()
+void FuzzyHandlerS::begin()
 {
   FuzzyInput *SensorDO = new FuzzyInput(1);
   FuzzyOutput *motor = new FuzzyOutput(1);
@@ -65,19 +65,19 @@ void FuzzyHandler::begin()
   fuzzy->addFuzzyRule(FuzzyRule4);
 }
 
-bool FuzzyHandler::setinput(int index, float input)
+bool FuzzyHandlerS::setinput(int index, float input)
 {
   // Mengatur input untuk fuzzy dengan indeks yang ditentukan
   return fuzzy->setInput(index, input);
 }
 
-bool FuzzyHandler::fuzify()
+bool FuzzyHandlerS::fuzify()
 {
   // Memulai proses fuzzifikasi
   return fuzzy->fuzzify();
 }
 
-int FuzzyHandler::output()
+int FuzzyHandlerS::output()
 {
   // Mendapatkan nilai keluaran fuzzy
   return fuzzy->defuzzify(1);

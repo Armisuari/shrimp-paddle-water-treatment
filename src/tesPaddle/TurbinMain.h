@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <RBDdimmer.h>
 #include "fuzzy_motor.h"
-// #include "fuzzy_speed.h"
+#include "fuzzy_speed.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include "LCDHandler.h"
+#include "LiquidCrystal_I2C.h"
 
 const char* ssid = "ESP-SoftAP";
 const char* password = "";
@@ -20,13 +20,16 @@ dimmerLamp acd(acdPin,zeroCrossPin);
 
 #define relay 13
 
+LiquidCrystal_I2C inilcd(0x27,20,4);
+FuzzyHandlerS fzS;
 FuzzyHandler fz;
-LCDHandler lcdhandler;
 
 int hasil;
 int state=1;
 int motor;
 int inputFuzzy;
+bool mode;
+bool Stop;
 
 void fz_task(void *pvParameters);
 void bt_task(void *pvParameters);
@@ -36,12 +39,14 @@ void cl_task(void *pvParameters);
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+  fzS.begin();
   fz.begin();
   acd.begin(NORMAL_MODE, ON);
-  lcdhandler.init();
+  inilcd.init();
+  inilcd.backlight();
 
-  pinMode(23, INPUT_PULLUP);
-  pinMode(22, INPUT_PULLUP);
+  pinMode(16, INPUT_PULLUP);
+  pinMode(17, INPUT_PULLUP);
   pinMode(relay, OUTPUT);
 
   //
@@ -74,17 +79,52 @@ void fz_task(void *pvParameters){
       if (dataDO > 0){
         inputFuzzy = dataDO;
       }
-      fz.setinput(1, inputFuzzy); // Mengatur input untuk logika fuzzy
-      fz.fuzify(); // Menghitung keluaran logika fuzzy
-      hasil = fz.output(); // Mendapatkan nilai keluaran logika fuzzy
-      Serial.printf("output Fuzzy: %d\n", hasil);
-      lcdhandler.cetak(0,0,"output Fuzzy:");
-      lcdhandler.cetak(0,1,String(hasil));
-      digitalWrite(relay,hasil);
-      // acd.setPower(hasil);
-      // Serial.print("Motor Value -> ");
-      // Serial.print(acd.getPower());
-      // Serial.println("%");
+      Serial.printf("Tombol = %d\n",digitalRead(16));
+      Serial.printf("Mode = %d\n",mode);
+      if (digitalRead(16) == 1)
+      {
+        mode=1;
+      }
+      else
+      {
+        mode=0;
+      }
+      
+      if (mode==1)
+        {
+          fzS.setinput(1, inputFuzzy); // Mengatur input untuk logika fuzzy
+          fzS.fuzify(); // Menghitung keluaran logika fuzzy
+          hasil = fzS.output(); // Mendapatkan nilai keluaran logika fuzzy
+          Serial.printf("output Fuzzy: %d\n", hasil);
+          acd.setPower(hasil);
+          Serial.print("Motor Value -> ");
+          Serial.print(acd.getPower());
+          Serial.println("%");
+          inilcd.clear();
+          inilcd.setCursor(0,0);
+          inilcd.print("Mode = ");
+          inilcd.setCursor(8,0);
+          inilcd.print("Speed");
+          delay(100);
+        }
+      else{
+          fz.setinput(1, inputFuzzy); // Mengatur input untuk logika fuzzy
+          fz.fuzify(); // Menghitung keluaran logika fuzzy
+          hasil = fz.output(); // Mendapatkan nilai keluaran logika fuzzy
+          digitalWrite(relay,hasil);
+          Serial.printf("Fuzzy = %d\n",hasil);
+          inilcd.clear();
+          inilcd.setCursor(0,0);
+          inilcd.print("Mode = ");
+          inilcd.setCursor(8,0);
+          inilcd.print("Relay");
+          delay(100);
+          }
+      
+      // inilcd.clear();
+      // inilcd.setCursor(0,0);
+      // inilcd.print("Fuzzy = ");
+      // inilcd.print(hasil);
     // Serial.println(dataDO);
       vTaskDelay(10);
     }

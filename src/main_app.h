@@ -206,22 +206,26 @@ void printSensorValue(Temperature_t tempVal, DO_Value doVal, pH_Value phvalue, E
     Serial.printf("Jarak: %d\n", jarak.measure());
     Serial.println("===========================");
 
-
+    mylcd.clear();
     mylcd.setCursor(0,0);
     mylcd.print("Temp :");
-    mylcd.setCursor(8,0);
+    mylcd.setCursor(7,0);
     mylcd.print(tempVal.temp);
     mylcd.setCursor(0,1);
     mylcd.print("DO :");
-    mylcd.setCursor(6,1);
+    mylcd.setCursor(5,1);
     mylcd.print(doVal.value/1000);
+    mylcd.setCursor(11,3);
+    mylcd.print("EC:");
+    mylcd.setCursor(15,3);
+    mylcd.print(ecvalue.value);
     mylcd.setCursor(0,2);
     mylcd.print("Jarak:");
-    mylcd.setCursor(8,2);
+    mylcd.setCursor(7,2);
     mylcd.print(jarak.measure());
     mylcd.setCursor(0,3);
     mylcd.print("pH :");
-    mylcd.setCursor(6,3);
+    mylcd.setCursor(5,3);
     mylcd.print(phvalue.value);
 
   Serial.println();
