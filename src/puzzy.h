@@ -46,11 +46,11 @@ void FuzzyHandler::begin()
 
 // Fuzzy Input 6 EC
   FuzzyInput *EC = new FuzzyInput(4);
-  FuzzySet *EC_Rendah = new FuzzySet(0, 0, 10, 15);
+  FuzzySet *EC_Rendah = new FuzzySet(0, 0, 2000, 4500);
   EC->addFuzzySet(EC_Rendah);
-  FuzzySet *EC_Normal = new FuzzySet(10, 15, 20, 25);
+  FuzzySet *EC_Normal = new FuzzySet(4000, 4500, 4500, 5000);
   EC->addFuzzySet(EC_Normal);
-  FuzzySet *EC_Tinggi = new FuzzySet(20, 30, 100, 100);
+  FuzzySet *EC_Tinggi = new FuzzySet(4500, 5000, 5000, 8000);
   EC->addFuzzySet(EC_Tinggi);
   fuzzy->addFuzzyInput(EC);  
 
@@ -429,9 +429,9 @@ FuzzyRuleAntecedent *pH_Normal_DO_Rendah_Jarak_Sedang31 = new FuzzyRuleAnteceden
 pH_Normal_DO_Rendah_Jarak_Sedang31->joinWithAND(pH_Normal_DO_Rendah31, Jarak_Sedang);
 FuzzyRuleAntecedent *pH_Normal_DO_Rendah_Jarak_Sedang_EC_Rendah31 = new FuzzyRuleAntecedent();
 pH_Normal_DO_Rendah_Jarak_Sedang_EC_Rendah31->joinWithAND(pH_Normal_DO_Rendah_Jarak_Sedang31, EC_Rendah);
-FuzzyRuleConsequent *Aman31 = new FuzzyRuleConsequent();
-Aman31->addOutput(Aman);
-FuzzyRule *fuzzyRule31 = new FuzzyRule(31, pH_Normal_DO_Rendah_Jarak_Sedang_EC_Rendah31, Aman31);
+FuzzyRuleConsequent *Ganti31 = new FuzzyRuleConsequent();
+Ganti31->addOutput(Ganti);
+FuzzyRule *fuzzyRule31 = new FuzzyRule(31, pH_Normal_DO_Rendah_Jarak_Sedang_EC_Rendah31, Ganti31);
 fuzzy->addFuzzyRule(fuzzyRule31);
 
 // Rule 32
@@ -465,9 +465,9 @@ FuzzyRuleAntecedent *pH_Normal_DO_Rendah_Jarak_Dalam34 = new FuzzyRuleAntecedent
 pH_Normal_DO_Rendah_Jarak_Dalam34->joinWithAND(pH_Normal_DO_Rendah34, Jarak_Dalam);
 FuzzyRuleAntecedent *pH_Normal_DO_Rendah_Jarak_Dalam_EC_Rendah34 = new FuzzyRuleAntecedent();
 pH_Normal_DO_Rendah_Jarak_Dalam_EC_Rendah34->joinWithAND(pH_Normal_DO_Rendah_Jarak_Dalam34, EC_Rendah);
-FuzzyRuleConsequent *Aman34 = new FuzzyRuleConsequent();
-Aman34->addOutput(Aman);
-FuzzyRule *fuzzyRule34 = new FuzzyRule(34, pH_Normal_DO_Rendah_Jarak_Dalam_EC_Rendah34, Aman34);
+FuzzyRuleConsequent *Ganti34 = new FuzzyRuleConsequent();
+Ganti34->addOutput(Ganti);
+FuzzyRule *fuzzyRule34 = new FuzzyRule(34, pH_Normal_DO_Rendah_Jarak_Dalam_EC_Rendah34, Ganti34);
 fuzzy->addFuzzyRule(fuzzyRule34);
 
 // Rule 35
@@ -549,9 +549,9 @@ FuzzyRuleAntecedent *pH_Normal_DO_Normal_Jarak_Sedang41 = new FuzzyRuleAnteceden
 pH_Normal_DO_Normal_Jarak_Sedang41->joinWithAND(pH_Normal_DO_Normal41, Jarak_Sedang);
 FuzzyRuleAntecedent *pH_Normal_DO_Normal_Jarak_Sedang_EC_Normal41 = new FuzzyRuleAntecedent();
 pH_Normal_DO_Normal_Jarak_Sedang_EC_Normal41->joinWithAND(pH_Normal_DO_Normal_Jarak_Sedang41, EC_Normal);
-FuzzyRuleConsequent *Ganti41 = new FuzzyRuleConsequent();
-Ganti41->addOutput(Ganti);
-FuzzyRule *fuzzyRule41 = new FuzzyRule(41, pH_Normal_DO_Normal_Jarak_Sedang_EC_Normal41, Ganti41);
+FuzzyRuleConsequent *Aman41 = new FuzzyRuleConsequent();
+Aman41->addOutput(Aman);
+FuzzyRule *fuzzyRule41 = new FuzzyRule(41, pH_Normal_DO_Normal_Jarak_Sedang_EC_Normal41, Aman41);
 fuzzy->addFuzzyRule(fuzzyRule41);
 
 // Rule 42
@@ -585,9 +585,9 @@ FuzzyRuleAntecedent *pH_Normal_DO_Normal_Jarak_Dalam44 = new FuzzyRuleAntecedent
 pH_Normal_DO_Normal_Jarak_Dalam44->joinWithAND(pH_Normal_DO_Normal44, Jarak_Dalam);
 FuzzyRuleAntecedent *pH_Normal_DO_Normal_Jarak_Dalam_EC_Normal44 = new FuzzyRuleAntecedent();
 pH_Normal_DO_Normal_Jarak_Dalam_EC_Normal44->joinWithAND(pH_Normal_DO_Normal_Jarak_Dalam44, EC_Normal);
-FuzzyRuleConsequent *Ganti44 = new FuzzyRuleConsequent();
-Ganti44->addOutput(Ganti);
-FuzzyRule *fuzzyRule44 = new FuzzyRule(44, pH_Normal_DO_Normal_Jarak_Dalam_EC_Normal44, Ganti44);
+FuzzyRuleConsequent *Aman44 = new FuzzyRuleConsequent();
+Aman44->addOutput(Aman);
+FuzzyRule *fuzzyRule44 = new FuzzyRule(44, pH_Normal_DO_Normal_Jarak_Dalam_EC_Normal44, Aman44);
 fuzzy->addFuzzyRule(fuzzyRule44);
 
 // Rule 45
