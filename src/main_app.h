@@ -10,7 +10,7 @@
 #include "TelemetryPublish.h"
 #include "TBCredentials.h"
 
-#include "puzzy.h"
+#include "puzzy4.h"
 
 // include sensors library
 #include "Sensors/DS18b20.h"
