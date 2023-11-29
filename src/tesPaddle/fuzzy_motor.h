@@ -31,9 +31,9 @@ void FuzzyHandler::begin()
   FuzzySet *pH_banyak = new FuzzySet(7, 8, 12, 12);
   SensorpH->addFuzzySet(pH_banyak);
 
-  FuzzySet *on = new FuzzySet(0, 0, 0, 0);
+  FuzzySet *on = new FuzzySet(1, 1, 1, 1);
   motor->addFuzzySet(on);
-  FuzzySet *off = new FuzzySet(1, 1, 1, 1);
+  FuzzySet *off = new FuzzySet(0, 0, 0, 0);
   motor->addFuzzySet(off);
 
   myfuzzy->addFuzzyInput(SensorDO);
