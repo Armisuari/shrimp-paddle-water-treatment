@@ -15,14 +15,22 @@ typedef struct
 void FuzzyHandlerS::begin()
 {
   FuzzyInput *SensorDO = new FuzzyInput(1);
+  FuzzyInput *SensorpH = new FuzzyInput(2);
   FuzzyOutput *motor = new FuzzyOutput(1);
 
-  FuzzySet *kurang = new FuzzySet(0, 0, 2, 4);
-  SensorDO->addFuzzySet(kurang);
-  FuzzySet *sedang = new FuzzySet(3, 5, 7, 8);
-  SensorDO->addFuzzySet(sedang);
-  FuzzySet *banyak = new FuzzySet(7, 9, 10, 10);
-  SensorDO->addFuzzySet(banyak);
+  FuzzySet *DO_kurang = new FuzzySet(0, 0, 2, 4);
+  SensorDO->addFuzzySet(DO_kurang);
+  FuzzySet *DO_sedang = new FuzzySet(3, 5, 7, 8);
+  SensorDO->addFuzzySet(DO_sedang);
+  FuzzySet *DO_banyak = new FuzzySet(7, 9, 10, 10);
+  SensorDO->addFuzzySet(DO_banyak);
+
+  FuzzySet *pH_kurang = new FuzzySet(0, 0, 4, 5);
+  SensorpH->addFuzzySet(pH_kurang);
+  FuzzySet *pH_sedang = new FuzzySet(4, 5, 7, 8);
+  SensorpH->addFuzzySet(pH_sedang);
+  FuzzySet *pH_banyak = new FuzzySet(7, 8, 12, 12);
+  SensorpH->addFuzzySet(pH_banyak);
 
   FuzzySet *mati = new FuzzySet(0, 0, 20, 30);
   motor->addFuzzySet(mati);
@@ -34,35 +42,81 @@ void FuzzyHandlerS::begin()
   motor->addFuzzySet(cepat);
 
   fuzzy->addFuzzyInput(SensorDO);
+  fuzzy->addFuzzyInput(SensorpH);
   fuzzy->addFuzzyOutput(motor);
 
-  FuzzyRuleAntecedent *ifSensorKurang1 = new FuzzyRuleAntecedent();
-  ifSensorKurang1->joinSingle(kurang);
-  FuzzyRuleConsequent *thenMotorCepat1 = new FuzzyRuleConsequent();
-  thenMotorCepat1->addOutput(cepat);
-  FuzzyRule *FuzzyRule1 = new FuzzyRule(1, ifSensorKurang1, thenMotorCepat1);
-  fuzzy->addFuzzyRule(FuzzyRule1);
+  //Rule 1
+  FuzzyRuleAntecedent *DO_Rendah_pH_Rendah1 = new FuzzyRuleAntecedent();
+  DO_Rendah_pH_Rendah1->joinWithAND(DO_kurang, pH_kurang);
+  FuzzyRuleConsequent *Cepat1 = new FuzzyRuleConsequent();
+  Cepat1->addOutput(cepat);
+  FuzzyRule *fuzzyRule1 = new FuzzyRule(1,DO_Rendah_pH_Rendah1, Cepat1);
+  fuzzy->addFuzzyRule(fuzzyRule1);
 
-  FuzzyRuleAntecedent *ifSensorSedang2 = new FuzzyRuleAntecedent();
-  ifSensorSedang2->joinSingle(sedang);
-  FuzzyRuleConsequent *thenMotorSedang2 = new FuzzyRuleConsequent();
-  thenMotorSedang2->addOutput(Msedang);
-  FuzzyRule *FuzzyRule2 = new FuzzyRule(2, ifSensorSedang2, thenMotorSedang2);
-  fuzzy->addFuzzyRule(FuzzyRule2);
+  //Rule 2
+  FuzzyRuleAntecedent *DO_Rendah_pH_Sedang2 = new FuzzyRuleAntecedent();
+  DO_Rendah_pH_Sedang2->joinWithAND(DO_kurang, pH_sedang);
+  FuzzyRuleConsequent *Cepat2 = new FuzzyRuleConsequent();
+  Cepat2->addOutput(cepat);
+  FuzzyRule *fuzzyRule2 = new FuzzyRule(2,DO_Rendah_pH_Sedang2, Cepat2);
+  fuzzy->addFuzzyRule(fuzzyRule2);
 
-  FuzzyRuleAntecedent *ifSensorSedang3 = new FuzzyRuleAntecedent();
-  ifSensorSedang3->joinSingle(sedang);
-  FuzzyRuleConsequent *thenMotorPelan3 = new FuzzyRuleConsequent();
-  thenMotorPelan3->addOutput(pelan);
-  FuzzyRule *FuzzyRule3 = new FuzzyRule(3, ifSensorSedang3, thenMotorPelan3);
-  fuzzy->addFuzzyRule(FuzzyRule3);
+  //Rule 3
+  FuzzyRuleAntecedent *DO_Rendah_pH_Banyak3 = new FuzzyRuleAntecedent();
+  DO_Rendah_pH_Banyak3->joinWithAND(DO_kurang, pH_banyak);
+  FuzzyRuleConsequent *MSedang3 = new FuzzyRuleConsequent();
+  MSedang3->addOutput(Msedang);
+  FuzzyRule *fuzzyRule3 = new FuzzyRule(3,DO_Rendah_pH_Banyak3, MSedang3);
+  fuzzy->addFuzzyRule(fuzzyRule3);
 
-  FuzzyRuleAntecedent *ifSensorBanyak4 = new FuzzyRuleAntecedent();
-  ifSensorBanyak4->joinSingle(banyak);
-  FuzzyRuleConsequent *thenMotorMati4 = new FuzzyRuleConsequent();
-  thenMotorMati4->addOutput(mati);
-  FuzzyRule *FuzzyRule4 = new FuzzyRule(4, ifSensorBanyak4, thenMotorMati4);
-  fuzzy->addFuzzyRule(FuzzyRule4);
+  //Rule 4
+  FuzzyRuleAntecedent *DO_Sedand_pH_Kurang4 = new FuzzyRuleAntecedent();
+  DO_Sedand_pH_Kurang4->joinWithAND(DO_sedang, pH_kurang);
+  FuzzyRuleConsequent *MSedang4 = new FuzzyRuleConsequent();
+  MSedang4->addOutput(Msedang);
+  FuzzyRule *fuzzyRule4 = new FuzzyRule(4,DO_Sedand_pH_Kurang4, MSedang4);
+  fuzzy->addFuzzyRule(fuzzyRule4);
+
+  //Rule 5
+  FuzzyRuleAntecedent *DO_Sedand_pH_Sedang5 = new FuzzyRuleAntecedent();
+  DO_Sedand_pH_Sedang5->joinWithAND(DO_sedang, pH_sedang);
+  FuzzyRuleConsequent *MSedang5 = new FuzzyRuleConsequent();
+  MSedang5->addOutput(Msedang);
+  FuzzyRule *fuzzyRule5 = new FuzzyRule(5,DO_Sedand_pH_Sedang5, MSedang5);
+  fuzzy->addFuzzyRule(fuzzyRule5);
+
+  //Rule 6
+  FuzzyRuleAntecedent *DO_Sedand_pH_Banyak6 = new FuzzyRuleAntecedent();
+  DO_Sedand_pH_Banyak6->joinWithAND(DO_sedang, pH_banyak);
+  FuzzyRuleConsequent *Pelan6 = new FuzzyRuleConsequent();
+  Pelan6->addOutput(pelan);
+  FuzzyRule *fuzzyRule6 = new FuzzyRule(6,DO_Sedand_pH_Banyak6, Pelan6);
+  fuzzy->addFuzzyRule(fuzzyRule6);
+
+  //Rule 7
+  FuzzyRuleAntecedent *DO_Banyak_pH_Kurang7 = new FuzzyRuleAntecedent();
+  DO_Banyak_pH_Kurang7->joinWithAND(DO_banyak, pH_kurang);
+  FuzzyRuleConsequent *Msedang7 = new FuzzyRuleConsequent();
+  Msedang7->addOutput(Msedang);
+  FuzzyRule *fuzzyRule7 = new FuzzyRule(7,DO_Banyak_pH_Kurang7, Msedang7);
+  fuzzy->addFuzzyRule(fuzzyRule7);
+
+  //Rule 8
+  FuzzyRuleAntecedent *DO_Banyak_pH_Sedang8 = new FuzzyRuleAntecedent();
+  DO_Banyak_pH_Sedang8->joinWithAND(DO_banyak, pH_sedang);
+  FuzzyRuleConsequent *Pelan8 = new FuzzyRuleConsequent();
+  Pelan8->addOutput(pelan);
+  FuzzyRule *fuzzyRule8 = new FuzzyRule(8,DO_Banyak_pH_Sedang8, Pelan8);
+  fuzzy->addFuzzyRule(fuzzyRule8);
+
+  //Rule 9
+  FuzzyRuleAntecedent *DO_Banyak_pH_Banyak9 = new FuzzyRuleAntecedent();
+  DO_Banyak_pH_Banyak9->joinWithAND(DO_banyak, pH_banyak);
+  FuzzyRuleConsequent *mati9 = new FuzzyRuleConsequent();
+  mati9->addOutput(mati);
+  FuzzyRule *fuzzyRule9 = new FuzzyRule(9,DO_Banyak_pH_Banyak9, mati9);
+  fuzzy->addFuzzyRule(fuzzyRule9);
+
 }
 
 bool FuzzyHandlerS::setinput(int index, float input)
