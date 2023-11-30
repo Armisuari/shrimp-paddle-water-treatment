@@ -1034,7 +1034,6 @@ Ganti81->addOutput(Ganti);
 FuzzyRule *fuzzyRule81 = new FuzzyRule(81, pH_Banyak_Kekeruhan_Banyak_Jarak_Dalam_EC_Tinggi81, Ganti81);
 fuzzy->addFuzzyRule(fuzzyRule81);
 
-
 }
 
 bool FuzzyHandler::setinput(int index, float input)
